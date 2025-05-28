@@ -3,8 +3,21 @@ from models.customer import Customer
 from models.sale import Sale
 from models.base import SessionLocal
 
+CAR_MAKES = ["Toyota", "Honda", "Ford", "BMW", "Nissan"]
+
+
 def add_car(session):
-    make = input("Enter car make: ")
+    print("\nAvailable Car Makes:")
+    for idx, make in enumerate(CAR_MAKES, start=1):
+        print(f"{idx}. {make}")
+
+    try:
+        make_index = int(input("Choose a car make by number: ")) - 1
+        make = CAR_MAKES[make_index]
+    except (IndexError, ValueError):
+        print("Invalid selection. Please try again.")
+        return
+
     model = input("Enter car model: ")
     year = int(input("Enter car year: "))
     price = float(input("Enter car price: "))
@@ -13,6 +26,7 @@ def add_car(session):
     session.add(car)
     session.commit()
     print(f"Car {make} {model} added with ID {car.id}")
+
 
 def add_customer(session):
     name = input("Enter customer name: ")
@@ -28,8 +42,6 @@ def record_sale(session):
     car_id = int(input("Enter car ID to sell: "))
     customer_id = int(input("Enter customer ID: "))
     sale_price = float(input("Enter sale price: "))
-
-    # Optional: Validate if car and customer exist
     car = session.get(Car, car_id)
     customer = session.get(Customer, customer_id)
     if not car:
