@@ -36,7 +36,7 @@ def add_car(session):
     year = int(input("Enter car year: "))
     price = float(input("Enter car price: "))
 
-    car = Car(make=make, model=model, year=year, price=price, type=car_type)
+    car = Car(make=make, model=model, year=year, price=price, car_type=car_type)
     session.add(car)
     session.commit()
     print(f"Car {make} {model} ({car_type}) added with ID {car.id}")
@@ -56,25 +56,34 @@ def record_sale(session):
     car_id = int(input("Enter car ID to sell: "))
     customer_id = int(input("Enter customer ID: "))
     sale_price = float(input("Enter sale price: "))
+
     car = session.get(Car, car_id)
     customer = session.get(Customer, customer_id)
+
     if not car:
         print(f"No car found with ID {car_id}")
+        return
+    if not car.available:
+        print(f"Car ID {car_id} is already sold.")
         return
     if not customer:
         print(f"No customer found with ID {customer_id}")
         return
 
     sale = Sale(car_id=car_id, customer_id=customer_id, sale_price=sale_price)
+    car.available = False 
     session.add(sale)
     session.commit()
-    print(f"Sale recorded with ID {sale.id}")
+    print(f"Sale recorded with ID {sale.id}. Car ID {car_id} marked as sold.")
+
 
 def list_cars(session):
     cars = session.query(Car).all()
     print("\nAll Cars:")
     for car in cars:
-        print(car)
+        status = "Available" if car.available else "Sold"
+        print(f"{car} - Status: {status}")
+
 
 def list_customers(session):
     customers = session.query(Customer).all()
