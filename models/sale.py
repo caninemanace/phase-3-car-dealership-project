@@ -12,6 +12,7 @@ class Sale(Base):
     salesman_id = Column(Integer, ForeignKey("salesmen.id"))
     sale_price = Column(Float, nullable=False)
     sale_date = Column(DateTime, default=datetime.utcnow)
+    commission = Column(Float, nullable=True)
 
     car = relationship("Car")
     customer = relationship("Customer")

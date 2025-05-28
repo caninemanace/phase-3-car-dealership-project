@@ -7,7 +7,7 @@ from models.base import SessionLocal
 CAR_MAKES = ["Toyota", "Honda", "Ford", "BMW", "Nissan"]
 CAR_TYPES = ["Sedan", "SUV", "Truck", "Coupe", "Hatchback"]
 
-
+COMMISSION_RATE = 0.05  
 
 def add_car(session):
     print("\nAvailable Car Makes:")
@@ -53,6 +53,7 @@ def add_customer(session):
     session.commit()
     print(f"Customer {name} added with ID {customer.id}")
 
+
 def add_salesman(session):
     name = input("Enter salesman's name: ")
     email = input("Enter email (optional): ")
@@ -62,6 +63,7 @@ def add_salesman(session):
     session.add(salesman)
     session.commit()
     print(f"Salesman {name} added with ID {salesman.id}")
+
 
 def record_sale(session):
     car_id = int(input("Enter car ID to sell: "))
@@ -102,17 +104,21 @@ def record_sale(session):
             print("Sale cancelled.")
             return
 
+    commission = (sale_price - car.price) * COMMISSION_RATE if sale_price > car.price else 0.0
+
     sale = Sale(
         car_id=car_id,
         customer_id=customer_id,
         sale_price=sale_price,
-        salesman_id=salesman_id
+        salesman_id=salesman_id,
+        commission=commission
     )
     car.available = False
     session.add(sale)
     session.commit()
 
-    print(f"Sale recorded with ID {sale.id}. Car ID {car_id} marked as sold by {salesman.name}.")
+    print(f"Sale recorded with ID {sale.id}. Car ID {car_id} sold by {salesman.name}.")
+    print(f"Commission Earned: ${commission:.2f}")
 
 
 def sales_report(session):
@@ -128,7 +134,17 @@ def sales_report(session):
             print(f"  Sold by: {salesman.name if salesman else 'Unknown'}")
             print(f"  Original Price: ${car.price:.2f}")
             print(f"  Sale Price:     ${sale.sale_price:.2f}")
-            print(f"  Result: {status} of ${abs(diff):.2f}\n")
+            print(f"  Result: {status} of ${abs(diff):.2f}")
+            print(f"  Commission:     ${sale.commission:.2f}\n")
+
+
+def salesman_commissions(session):
+    print("\n--- Salesman Commissions Report ---")
+    salesmen = session.query(Salesman).all()
+    for s in salesmen:
+        sales = session.query(Sale).filter_by(salesman_id=s.id).all()
+        total_commission = sum(sale.commission or 0 for sale in sales)
+        print(f"{s.name}: ${total_commission:.2f}")
 
 
 def list_cars(session):
@@ -145,11 +161,13 @@ def list_customers(session):
     for customer in customers:
         print(customer)
 
+
 def list_sales(session):
     sales = session.query(Sale).all()
     print("\nAll Sales:")
     for sale in sales:
         print(sale)
+
 
 def menu():
     session = SessionLocal()
@@ -164,7 +182,8 @@ def menu():
         print("6. List Customers")
         print("7. List Sales")
         print("8. Sales Report")
-        print("9. Exit")
+        print("9. Salesman Commissions")
+        print("10. Exit")
 
         choice = input("Enter your choice: ")
 
@@ -185,6 +204,8 @@ def menu():
         elif choice == "8":
             sales_report(session)
         elif choice == "9":
+            salesman_commissions(session)
+        elif choice == "10":
             print("Shutting down the application.")
             break
         else:
@@ -192,5 +213,7 @@ def menu():
 
     session.close()
 
+
 if __name__ == "__main__":
     menu()
+
