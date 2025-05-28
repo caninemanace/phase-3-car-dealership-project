@@ -76,6 +76,27 @@ def record_sale(session):
     session.commit()
     print(f"Sale recorded with ID {sale.id}. Car ID {car_id} marked as sold.")
 
+    if sale_price < car.price:
+        confirm = input(f"Warning: Sale price is lower than original (${car.price:.2f}). Proceed? (y/n): ")
+    if confirm.lower() != 'y':
+        print("Sale cancelled.")
+        return
+
+
+def sales_report(session):
+    sales = session.query(Sale).all()
+    print("\n--- Sales Report ---")
+    for sale in sales:
+        car = session.get(Car, sale.car_id)
+        if car:
+            diff = sale.sale_price - car.price
+            status = "Profit" if diff > 0 else "Loss" if diff < 0 else "Break-even"
+            print(f"Sale ID: {sale.id} | Car: {car.make} {car.model} ({car.year})")
+            print(f"  Original Price: ${car.price:.2f}")
+            print(f"  Sale Price:     ${sale.sale_price:.2f}")
+            print(f"  Result: {status} of ${abs(diff):.2f}\n")
+
+
 
 def list_cars(session):
     cars = session.query(Car).all()
@@ -108,7 +129,8 @@ def menu():
         print("4. List Cars")
         print("5. List Customers")
         print("6. List Sales")
-        print("7. Exit")
+        print("7. View sales report")
+        print("8. Exit")
 
         choice = input("Enter your choice: ")
 
@@ -125,6 +147,8 @@ def menu():
         elif choice == "6":
             list_sales(session)
         elif choice == "7":
+            sales_report(session)
+        elif choice == "8":
             print("Shutting down the application.")
             break
         else:
