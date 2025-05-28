@@ -4,6 +4,8 @@ from models.sale import Sale
 from models.base import SessionLocal
 
 CAR_MAKES = ["Toyota", "Honda", "Ford", "BMW", "Nissan"]
+CAR_TYPES = ["Sedan", "SUV", "Truck", "Coupe", "Hatchback"]
+
 
 
 def add_car(session):
@@ -15,17 +17,29 @@ def add_car(session):
         make_index = int(input("Choose a car make by number: ")) - 1
         make = CAR_MAKES[make_index]
     except (IndexError, ValueError):
-        print("Invalid selection. Please try again.")
+        print("Invalid make selection.")
         return
 
     model = input("Enter car model: ")
+
+    print("\nAvailable Car Types:")
+    for idx, car_type in enumerate(CAR_TYPES, start=1):
+        print(f"{idx}. {car_type}")
+
+    try:
+        type_index = int(input("Choose a car type by number: ")) - 1
+        car_type = CAR_TYPES[type_index]
+    except (IndexError, ValueError):
+        print("Invalid type selection.")
+        return
+
     year = int(input("Enter car year: "))
     price = float(input("Enter car price: "))
 
-    car = Car(make=make, model=model, year=year, price=price)
+    car = Car(make=make, model=model, year=year, price=price, type=car_type)
     session.add(car)
     session.commit()
-    print(f"Car {make} {model} added with ID {car.id}")
+    print(f"Car {make} {model} ({car_type}) added with ID {car.id}")
 
 
 def add_customer(session):
@@ -102,7 +116,7 @@ def menu():
         elif choice == "6":
             list_sales(session)
         elif choice == "7":
-            print("Goodbye!")
+            print("Shutting down the application.")
             break
         else:
             print("Invalid choice. Please select from the menu.")
