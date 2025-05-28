@@ -1,6 +1,7 @@
 from models.car import Car
 from models.customer import Customer
 from models.sale import Sale
+from models.salesman import Salesman
 from models.base import SessionLocal
 
 CAR_MAKES = ["Toyota", "Honda", "Ford", "BMW", "Nissan"]
@@ -52,6 +53,16 @@ def add_customer(session):
     session.commit()
     print(f"Customer {name} added with ID {customer.id}")
 
+def add_salesman(session):
+    name = input("Enter salesman's name: ")
+    email = input("Enter email (optional): ")
+    phone = input("Enter phone number (optional): ")
+
+    salesman = Salesman(name=name, email=email, phone=phone)
+    session.add(salesman)
+    session.commit()
+    print(f"Salesman {name} added with ID {salesman.id}")
+
 def record_sale(session):
     car_id = int(input("Enter car ID to sell: "))
     customer_id = int(input("Enter customer ID: "))
@@ -70,17 +81,38 @@ def record_sale(session):
         print(f"No customer found with ID {customer_id}")
         return
 
-    sale = Sale(car_id=car_id, customer_id=customer_id, sale_price=sale_price)
-    car.available = False 
-    session.add(sale)
-    session.commit()
-    print(f"Sale recorded with ID {sale.id}. Car ID {car_id} marked as sold.")
+    salesmen = session.query(Salesman).all()
+    if not salesmen:
+        print("No salesmen available. Please add a salesman first.")
+        return
+
+    print("\nAvailable Salesmen:")
+    for s in salesmen:
+        print(f"{s.id}. {s.name}")
+
+    salesman_id = int(input("Enter salesman ID: "))
+    salesman = session.get(Salesman, salesman_id)
+    if not salesman:
+        print(f"No salesman found with ID {salesman_id}")
+        return
 
     if sale_price < car.price:
-        confirm = input(f"Warning: Sale price is lower than original (${car.price:.2f}). Proceed? (y/n): ")
-    if confirm.lower() != 'y':
-        print("Sale cancelled.")
-        return
+        confirm = input(f"Warning: Sale price (${sale_price:.2f}) is lower than original (${car.price:.2f}). Proceed? (y/n): ")
+        if confirm.lower() != 'y':
+            print("Sale cancelled.")
+            return
+
+    sale = Sale(
+        car_id=car_id,
+        customer_id=customer_id,
+        sale_price=sale_price,
+        salesman_id=salesman_id
+    )
+    car.available = False
+    session.add(sale)
+    session.commit()
+
+    print(f"Sale recorded with ID {sale.id}. Car ID {car_id} marked as sold by {salesman.name}.")
 
 
 def sales_report(session):
@@ -88,14 +120,15 @@ def sales_report(session):
     print("\n--- Sales Report ---")
     for sale in sales:
         car = session.get(Car, sale.car_id)
+        salesman = session.get(Salesman, sale.salesman_id)
         if car:
             diff = sale.sale_price - car.price
             status = "Profit" if diff > 0 else "Loss" if diff < 0 else "Break-even"
             print(f"Sale ID: {sale.id} | Car: {car.make} {car.model} ({car.year})")
+            print(f"  Sold by: {salesman.name if salesman else 'Unknown'}")
             print(f"  Original Price: ${car.price:.2f}")
             print(f"  Sale Price:     ${sale.sale_price:.2f}")
             print(f"  Result: {status} of ${abs(diff):.2f}\n")
-
 
 
 def list_cars(session):
@@ -125,12 +158,13 @@ def menu():
         print("\n--- Car Dealership Menu ---")
         print("1. Add Car")
         print("2. Add Customer")
-        print("3. Record Sale")
-        print("4. List Cars")
-        print("5. List Customers")
-        print("6. List Sales")
-        print("7. View sales report")
-        print("8. Exit")
+        print("3. Add Salesman")
+        print("4. Record Sale")
+        print("5. List Cars")
+        print("6. List Customers")
+        print("7. List Sales")
+        print("8. Sales Report")
+        print("9. Exit")
 
         choice = input("Enter your choice: ")
 
@@ -139,16 +173,18 @@ def menu():
         elif choice == "2":
             add_customer(session)
         elif choice == "3":
-            record_sale(session)
+            add_salesman(session)
         elif choice == "4":
-            list_cars(session)
+            record_sale(session)
         elif choice == "5":
-            list_customers(session)
+            list_cars(session)
         elif choice == "6":
-            list_sales(session)
+            list_customers(session)
         elif choice == "7":
-            sales_report(session)
+            list_sales(session)
         elif choice == "8":
+            sales_report(session)
+        elif choice == "9":
             print("Shutting down the application.")
             break
         else:

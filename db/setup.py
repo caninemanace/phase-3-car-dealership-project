@@ -1,7 +1,8 @@
 from models.base import Base, engine
 from models.car import Car
 from models.customer import Customer   
-from models.sale import Sale            
+from models.sale import Sale 
+from models.salesman import Salesman           
 
 def setup_database():
     Base.metadata.create_all(engine)
