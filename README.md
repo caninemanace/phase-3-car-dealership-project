@@ -81,7 +81,7 @@ car_dealership/
 
 4. **Set up the database (if required)**
     ```bash
-    python db/setup.py
+    python -m db.setup
     ```
 
 ---
