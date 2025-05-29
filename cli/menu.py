@@ -45,8 +45,8 @@ def add_car(session):
 
 def add_customer(session):
     name = input("Enter customer name: ")
-    phone = input("Enter phone number (optional): ")
-    email = input("Enter email (optional): ")
+    phone = input("Enter phone number: ")
+    email = input("Enter email: ")
 
     customer = Customer(name=name, phone=phone, email=email)
     session.add(customer)
@@ -56,8 +56,8 @@ def add_customer(session):
 
 def add_salesman(session):
     name = input("Enter salesman's name: ")
-    email = input("Enter email (optional): ")
-    phone = input("Enter phone number (optional): ")
+    email = input("Enter email: ")
+    phone = input("Enter phone number : ")
 
     salesman = Salesman(name=name, email=email, phone=phone)
     session.add(salesman)
@@ -168,6 +168,62 @@ def list_sales(session):
     for sale in sales:
         print(sale)
 
+def update_car(session):
+    list_cars(session)
+    car_id = int(input("Enter the ID of the car you want to update: "))
+    car = session.get(Car, car_id)
+
+    if not car:
+        print("Car not found.")
+        return
+
+    print(f"Updating Car ID {car.id}: {car.make} {car.model}")
+    car.make = input(f"Enter new make (current: {car.make}): ") or car.make
+    car.model = input(f"Enter new model (current: {car.model}): ") or car.model
+    car.year = int(input(f"Enter new year (current: {car.year}): ") or car.year)
+    car.price = float(input(f"Enter new price (current: {car.price}): ") or car.price)
+    car.car_type = input(f"Enter new type (current: {car.car_type}): ") or car.car_type
+
+    session.commit()
+    print("Car updated successfully.")
+
+def update_customer(session):
+    list_customers(session)
+    customer_id = int(input("Enter the ID of the customer to update: "))
+    customer = session.get(Customer, customer_id)
+
+    if not customer:
+        print("Customer not found.")
+        return
+
+    print(f"Updating Customer ID {customer.id}: {customer.name}")
+    customer.name = input(f"Enter new name (current: {customer.name}): ") or customer.name
+    customer.phone = input(f"Enter new phone (current: {customer.phone}): ") or customer.phone
+    customer.email = input(f"Enter new email (current: {customer.email}): ") or customer.email
+
+    session.commit()
+    print("Customer updated successfully.")
+
+def update_salesman(session):
+    salesmen = session.query(Salesman).all()
+    for s in salesmen:
+        print(f"{s.id}. {s.name}")
+    salesman_id = int(input("Enter the ID of the salesman to update: "))
+    salesman = session.get(Salesman, salesman_id)
+
+    if not salesman:
+        print("Salesman not found.")
+        return
+
+    print(f"Updating Salesman ID {salesman.id}: {salesman.name}")
+    salesman.name = input(f"Enter new name (current: {salesman.name}): ") or salesman.name
+    salesman.phone = input(f"Enter new phone (current: {salesman.phone}): ") or salesman.phone
+    salesman.email = input(f"Enter new email (current: {salesman.email}): ") or salesman.email
+
+    session.commit()
+    print("Salesman updated successfully.")
+
+
 
 def menu():
     session = SessionLocal()
@@ -183,7 +239,10 @@ def menu():
         print("7. List Sales")
         print("8. Sales Report")
         print("9. Salesman Commissions")
-        print("10. Exit")
+        print("10. Update Car")
+        print("11. Update Customer")
+        print("12. Update Salesman")
+        print("13. Exit")
 
         choice = input("Enter your choice: ")
 
@@ -206,6 +265,12 @@ def menu():
         elif choice == "9":
             salesman_commissions(session)
         elif choice == "10":
+            update_car(session)
+        elif choice == "11":
+            update_customer(session)
+        elif choice == "12":
+            update_salesman(session)
+        elif choice == "13":
             print("Shutting down the application.")
             break
         else:
