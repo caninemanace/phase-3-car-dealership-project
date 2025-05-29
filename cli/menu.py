@@ -223,6 +223,48 @@ def update_salesman(session):
     session.commit()
     print("Salesman updated successfully.")
 
+def delete_car(session):
+    list_cars(session)
+    car_id = int(input("Enter the ID of the car to delete: "))
+    car = session.get(Car, car_id)
+
+    if not car:
+        print("Car not found.")
+        return
+
+    session.delete(car)
+    session.commit()
+    print("Car deleted.")
+
+def delete_customer(session):
+    list_customers(session)
+    customer_id = int(input("Enter the ID of the customer to delete: "))
+    customer = session.get(Customer, customer_id)
+
+    if not customer:
+        print("Customer not found.")
+        return
+
+    session.delete(customer)
+    session.commit()
+    print("Customer deleted.")
+
+def delete_salesman(session):
+    salesmen = session.query(Salesman).all()
+    for s in salesmen:
+        print(f"{s.id}. {s.name}")
+    salesman_id = int(input("Enter the ID of the salesman to delete: "))
+    salesman = session.get(Salesman, salesman_id)
+
+    if not salesman:
+        print("Salesman not found.")
+        return
+
+    session.delete(salesman)
+    session.commit()
+    print("Salesman deleted.")
+
+
 
 
 def menu():
@@ -242,7 +284,10 @@ def menu():
         print("10. Update Car")
         print("11. Update Customer")
         print("12. Update Salesman")
-        print("13. Exit")
+        print("13. Delete Car")
+        print("14. Delete Customer")
+        print("15. Delete Salesman")
+        print("16. Exit")
 
         choice = input("Enter your choice: ")
 
@@ -271,6 +316,12 @@ def menu():
         elif choice == "12":
             update_salesman(session)
         elif choice == "13":
+            delete_car(session)
+        elif choice == "14":
+            delete_customer(session)
+        elif choice == "15":
+            delete_salesman(session)
+        elif choice == "16":
             print("Shutting down the application.")
             break
         else:
